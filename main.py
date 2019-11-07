@@ -10,13 +10,13 @@ def main():
     scraped_text = scrape_url(url)
     end = timer()
     print("Total time taken to scrape text:", end - start, "seconds")
-    shifts_map = {}
+    shifts_list = []
     start = timer()
-    shift = circular_shift(scraped_text, url, shifts_map)
-    shifts_map.update(shift)
+    circular_shift(scraped_text, url, shifts_list)
     end = timer()
     print("Total time taken to shift and merge:", end - start, "seconds")
-    # print(shifts_map)
+    for indexes in shifts_list:
+       print(indexes)
 
 
 main()
