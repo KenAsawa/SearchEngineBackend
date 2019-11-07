@@ -15,8 +15,6 @@ def main():
     circular_shift(scraped_text, url, shifts_list)
     end = timer()
     print("Total time taken to shift and merge:", end - start, "seconds")
-    for indexes in shifts_list:
-       print(indexes)
 
 
 main()
