@@ -2,18 +2,24 @@ noise_words_file = open("Noisewords.txt", "r", encoding='utf8')
 noise_words = set(line.strip() for line in noise_words_file.readlines())
 
 
-def circular_shift(src_text, url, main_list):  # Takes in a String, String, List
+def circular_shift(src_text, url, main_list, title):  # Takes in a String, String, List, String
     # Return empty array if input line is empty
     if len(src_text) == 0:
-        return
+        return main_list
     words = src_text.split(" ")
+    shifted = set()
+    shift_to_url = {}
+    url_to_title = {}
     indexes = []
     for i in range(len(words)):
         if words[0] not in noise_words:
             line = " ".join(words)
-            # Appends tuple to list of tuple
-            new_index = [line, url]
-            indexes.append(new_index)
+            shifted.add(line)
+            if line not in shift_to_url:
+                shift_to_url[line] = set().add(url)
+            else:
+                shift_to_url[line] = shift_to_url[line].get(line, []).add(url)
+            url_to_title[url] = title
         # Shifts first word to the end
         words.append(words.pop(0))
     # Alphabetize the tuple list.
