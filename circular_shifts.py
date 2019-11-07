@@ -7,14 +7,13 @@ def circular_shift(src_text, url, main_list, title):  # Takes in a String, Strin
     if len(src_text) == 0:
         return main_list
     words = src_text.split(" ")
-    shifted = set()
+    indexes = set()
     shift_to_url = {}
     url_to_title = {}
-    indexes = []
     for i in range(len(words)):
         if words[0] not in noise_words:
             line = " ".join(words)
-            shifted.add(line)
+            indexes.add(line)
             if line not in shift_to_url:
                 shift_to_url[line] = set().add(url)
             else:
@@ -23,7 +22,7 @@ def circular_shift(src_text, url, main_list, title):  # Takes in a String, Strin
         # Shifts first word to the end
         words.append(words.pop(0))
     # Alphabetize the tuple list.
-    indexes = sorted(indexes, key=lambda s: s[0].lower())
+    indexes = sorted(list(indexes), key=lambda s: s[0].lower())
     # Merge new tuple list with main list
     main_list += indexes
     return main_list
