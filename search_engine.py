@@ -49,12 +49,12 @@ def parse_keyword_combinations(search_query):
     # ORs are implied; filter them out
     tokenized = [term for term in tokenized if term != "OR"]
     # Remove leading/trailing ANDs
-    if tokenized[0] == 'AND':
+    if len(tokenized) > 0 and tokenized[0] == 'AND':
         tokenized.pop(0)
-    if tokenized[-1] == 'AND':
+    if len(tokenized) > 0 and tokenized[-1] == 'AND':
         tokenized.pop()
     # Remove trailing NOT
-    if tokenized[-1] == 'NOT':
+    if len(tokenized) > 0 and tokenized[-1] == 'NOT':
         tokenized.pop()
 
     # Find locations of keyword "NOT"
