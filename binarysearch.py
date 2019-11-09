@@ -89,16 +89,51 @@ def parse_keyword_combinations(search_query):
     return clauses, negations
 
 
+def contains_words(index_string, words, case_sensitive):
+    """
+    Determines if the given index_string contains all tokens within words.
+    :param index_string: The string within which to search for tokens
+    :param words: The list of tokens to find in the index_string
+    :param case_sensitive: True if differences in case matter, False otherwise
+    :return: True if all words are found in the index_string, False otherwise
+    """
+
+    # Base case
+    if len(words) == 0:
+        return True
+
+    # Remove duplicates, hash contents
+    words = set(words)
+    # Case sensitivity
+    if case_sensitive:
+        index_string = index_string.lower()
+
+    # Iterate through index_string
+    for token in index_string.split(' '):
+        # Case sensitivity
+        if case_sensitive:
+            token = token.lower()
+        # Check this is one of the words
+        if token in words:
+            # Stop checking for that word
+            words.remove(token)
+            # All words found? Return True
+            if len(words) == 0:
+                return True
+
+    return False
+
+
 indices = [
-    ('bunny monday', ['url', 'url']),
-    ('cat', ['url', 'url']),
-    ('dog', ['url', 'url']),
-    ('engine', ['url', 'url']),
-    ('hard wall', ['url', 'url']),
-    ('jump', ['url', 'url']),
-    ('monday bunny', ['url', 'url']),
-    ('tuesday', ['url', 'url']),
-    ('wall hard', ['url', 'url']),
+    ('bunny monday', ['apple.com', 'material.io']),
+    ('cat', ['google.com']),
+    ('dog', ['microsoft.com']),
+    ('engine', ['twitch.tv']),
+    ('hard wall', ['stackoverflow.com', 'nintendo.com']),
+    ('jump', ['youtube.com']),
+    ('monday bunny', ['apple.com', 'material.io']),
+    ('tuesday', ['dbrand.com']),
+    ('wall hard', ['stackoverflow.com', 'nintendo.com']),
 ]
 indices.sort(key=lambda s: s[0].lower())
 
@@ -129,4 +164,29 @@ def test_op_parsing():
 
 
 if __name__ == '__main__':
-    test_op_parsing()
+    query = input('Search Query: ')
+    clause_list, n = parse_keyword_combinations(query)
+    cs = (input('Case sensitive? (y/n) ').lower() + ' ')[0] == 'y'
+
+    results = []
+    # go through each clause
+    for c in clause_list:
+        # find matching index position based on first term in clause
+        index = binary_search(indices, c[0], case_sensitive=cs)
+        # Ignore if no initial match found
+        if index == -1:
+            continue
+        # Ignore if match contains words that were blacklisted
+        if not len(n) == 0 and contains_words(indices[index][0], n, case_sensitive=cs):
+            continue
+        # Ignore if match doesn't have remaining words in clause
+        if not contains_words(indices[index][0], c[1:], case_sensitive=cs):
+            continue
+        # Match must be good
+        results.append(index)
+
+    # Show all urls that would be returned
+    urls = []
+    for index in results:
+        urls += indices[index][1]
+    print(set(urls))
