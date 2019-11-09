@@ -11,6 +11,18 @@ def binary_search(arr, word, case_sensitive=False):
 
 
 def recursive_binary_search(array, word, left, right, case_sensitive):
+    """
+    Recursively performs binary search on an array of indices. Comparisons
+    are done based on alphabetical order of current "mid" value and the word
+    to search for.
+    :param array: list of strings to search in
+    :param word: string to search for
+    :param left: left possible index of word in array
+    :param right: right possible index of word in array
+    :param case_sensitive: True if case sensitivity should be enforced
+    :return: the index that the word is contained at, -1 if not found.
+    """
+
     # Stop if no indices left to search
     if right < left:
         return -1
@@ -26,9 +38,9 @@ def recursive_binary_search(array, word, left, right, case_sensitive):
     # Return desired index accordingly
     if mw == word:
         return mid
-    if word < mw:
+    if word < mw.lower():
         return recursive_binary_search(array, word, left, mid - 1, case_sensitive)
-    if word > mw:
+    if word > mw.lower():
         return recursive_binary_search(array, word, mid + 1, right, case_sensitive)
 
 
@@ -124,20 +136,6 @@ def contains_words(index_string, words, case_sensitive):
     return False
 
 
-indices = [
-    ('bunny monday', ['apple.com', 'material.io']),
-    ('cat', ['google.com']),
-    ('dog', ['microsoft.com']),
-    ('engine', ['twitch.tv']),
-    ('hard wall', ['stackoverflow.com', 'nintendo.com']),
-    ('jump', ['youtube.com']),
-    ('monday bunny', ['apple.com', 'material.io']),
-    ('tuesday', ['dbrand.com']),
-    ('wall hard', ['stackoverflow.com', 'nintendo.com']),
-]
-indices.sort(key=lambda s: s[0].lower())
-
-
 def test_querying():
     # Set case sensitivity setting
     sensitivity = input('Type "1" to enable case sensitivity: ') == '1'
@@ -164,6 +162,19 @@ def test_op_parsing():
 
 
 if __name__ == '__main__':
+    # dummy index table
+    indices = sorted([
+        ('bunny monday', ['apple.com', 'material.io']),
+        ('cat', ['google.com']),
+        ('dog', ['microsoft.com']),
+        ('engine', ['twitch.tv']),
+        ('hard wall', ['stackoverflow.com', 'nintendo.com']),
+        ('jump', ['youtube.com']),
+        ('monday bunny', ['apple.com', 'material.io']),
+        ('tuesday', ['dbrand.com']),
+        ('wall hard', ['stackoverflow.com', 'nintendo.com']),
+    ], key=lambda s: s[0].lower())
+
     query = input('Search Query: ')
     clause_list, n = parse_keyword_combinations(query)
     cs = (input('Case sensitive? (y/n) ').lower() + ' ')[0] == 'y'
