@@ -177,7 +177,7 @@ if __name__ == '__main__':
 
     query = input('Search Query: ')
     clause_list, n = parse_keyword_combinations(query)
-    cs = (input('Case sensitive? (y/n) ').lower() + ' ')[0] == 'y'
+    cs = (input('Case sensitive? (type "yes", default no): ').lower() + ' ')[0] == 'y'
 
     results = []
     # go through each clause
@@ -197,7 +197,10 @@ if __name__ == '__main__':
         results.append(index)
 
     # Show all urls that would be returned
-    urls = []
-    for index in results:
-        urls += indices[index][1]
-    print(set(urls))
+    if len(results) > 0:
+        urls = []
+        for index in results:
+            urls += indices[index][1]
+        print(set(urls))
+    else:
+        print('No results found.')
