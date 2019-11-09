@@ -1,4 +1,4 @@
-def binarySearchIndex(arr, word, case_sensitive=False):
+def binary_search(arr, word, case_sensitive=False):
     """
     Returns the index in an array of KWIC indices 
     """
@@ -7,10 +7,10 @@ def binarySearchIndex(arr, word, case_sensitive=False):
     if not case_sensitive:
         word = word.lower()
 
-    return recursiveBinarySearch(arr, word, 0, len(arr) - 1, case_sensitive)
+    return recursive_binary_search(arr, word, 0, len(arr) - 1, case_sensitive)
 
 
-def recursiveBinarySearch(array, word, left, right, case_sensitive):
+def recursive_binary_search(array, word, left, right, case_sensitive):
     # Stop if no indices left to search
     if right < left:
         return -1
@@ -27,22 +27,22 @@ def recursiveBinarySearch(array, word, left, right, case_sensitive):
     if mw == word:
         return mid
     if word < mw:
-        return recursiveBinarySearch(array, word, left, mid - 1, case_sensitive)
+        return recursive_binary_search(array, word, left, mid - 1, case_sensitive)
     if word > mw:
-        return recursiveBinarySearch(array, word, mid + 1, right, case_sensitive)
+        return recursive_binary_search(array, word, mid + 1, right, case_sensitive)
 
 
-def parseOperators(search_query):
+def parse_keyword_combinations(search_query):
     """
     Parses the given query and determines what groupings of tokens must appear
     in returned search results. Output consists of a list, where each member is
     a list of tokens. The contents of one sub-list indicates queries where all
     contained tokens must match for any given result.
-    :param search_query:
-    :return:
+    :param search_query: a string of space separated keywords
+    :return: a tuple containing a list of clauses, where each clause is a list of
+    keywords AND'd together and the clauses themselves are OR'd together, and a set
+    of strings containing the keywords that have been NOT'd.
     """
-    # Each clause if a series of terms ANDed together
-    clauses = []
 
     # Tokenize search query
     tokenized = search_query.split(' ')
@@ -60,28 +60,30 @@ def parseOperators(search_query):
     # Find locations of keyword "NOT"
     not_locations = [i for i in range(len(tokenized)) if tokenized[i] == 'NOT']
     # Get list of terms that are to be negative
-    negations = [tokenized[i + 1] for i in not_locations]
+    negations = set([tokenized[i + 1] for i in not_locations])
+    # NOT terms and associate keywords can now be removed
+    for i in not_locations[::-1]:
+        tokenized.pop(i + 1)  # keyword
+        tokenized.pop(i)  # NOT
 
-    # Find locations of keyword "NOT"
-    and_locations = [i for i in range(len(tokenized)) if tokenized[i] == 'AND']
-    # Clause this is a part of
-    clause_number = -1
-    for i in range(len(and_locations)):
-        current_location = and_locations[i]
-        # ANDs chained together
-        if i > 1 and current_location == and_locations[i - 1] + 2:
-            clauses[clause_number].add(tokenized[current_location - 1])
-            clauses[clause_number].add(tokenized[current_location + 1])
-        # New AND chain
-        else:
-            clauses.append(set())
-            clause_number += 1
-            clauses[clause_number].add(tokenized[current_location - 1])
-            clauses[clause_number].add(tokenized[current_location + 1])
+    # Find locations of actual keywords
+    keyword_locations = [i for i in range(len(tokenized)) if tokenized[i] != 'AND']
+    # Each clause if a series of terms ANDed together
+    clauses, clause_num = [], 0
+    for pos in range(len(keyword_locations)):
+        # See if new sublist needs to be made
+        if clause_num == len(clauses):
+            clauses.append([])
+        # Add current keyword to current AND chain
+        clauses[clause_num].append(tokenized[keyword_locations[pos]])
+        # If next keyword is next in tokenized
+        if pos + 1 < len(keyword_locations) and keyword_locations[pos + 1] == keyword_locations[pos] + 1:
+            # New clause will begin
+            clause_num += 1
 
     # Convert to simple space-separate strings
-    for i in range(len(clauses)):
-        clauses[i] = ' '.join(clauses[i])
+    # for i in range(len(clauses)):
+    #     clauses[i] = ' '.join(clauses[i])
 
     # Return list of OR'd AND clauses and list of blacklisted words
     return clauses, negations
@@ -106,7 +108,7 @@ def test_querying():
     sensitivity = input('Type "1" to enable case sensitivity: ') == '1'
     query = input('Search Query: ')
     for token in query.split(' '):
-        index = binarySearchIndex(indices, token, case_sensitive=sensitivity)
+        index = binary_search(indices, token, case_sensitive=sensitivity)
         if index == -1:
             print('{} not found.'.format(token))
         else:
@@ -115,7 +117,7 @@ def test_querying():
 
 def test_op_parsing():
     query = input('Search Query: ')
-    c, n = parseOperators(query)
+    c, n = parse_keyword_combinations(query)
 
     print('AND combinations:')
     for comb in c:
