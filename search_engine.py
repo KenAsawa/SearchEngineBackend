@@ -179,6 +179,23 @@ if __name__ == '__main__':
     clause_list, n = parse_keyword_combinations(query)
     cs = (input('Case sensitive? (type "yes", default no): ').lower() + ' ')[0] == 'y'
 
+    # import noise words
+    noise_words = set(line.strip() for line in open("Noisewords.txt", "r", encoding='utf8').readlines())
+
+    """ Filter all noise words and prune empty clauses from clause list. """
+    # Iterate backwards through the clause list
+    for clause_position in range(len(clause_list) - 1, -1, -1):
+        current_clause = clause_list[clause_position]
+        # Iterate backwards through the current clause
+        for token_position in range(len(current_clause) - 1, -1, -1):
+            # Remove word if it is a noise word
+            if current_clause[token_position] in noise_words:
+                current_clause.pop(token_position)
+
+        # Remove the clause altogether if nothing left
+        if len(current_clause) == 0:
+            clause_list.pop(clause_position)
+
     results = []
     # go through each clause
     for c in clause_list:
