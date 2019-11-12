@@ -136,6 +136,31 @@ def contains_words(index_string, words, case_sensitive):
     return False
 
 
+def filter_clauses(clauses, stop_words):
+    """
+    Filters all stop words from a predetermined list of stop words.
+    Additionally filters any clauses that become empty as a result.
+    :param clauses: A list of lists representing clauses of OR'd terms.
+    :param stop_words: A list or set of strings that are words to be filtered out.
+    :return: A list containing clauses post-filtering.
+    """
+
+    # Iterate backwards through the clause list
+    for clause_position in range(len(clauses) - 1, -1, -1):
+        current_clause = clauses[clause_position]
+        # Iterate backwards through the current clause
+        for token_position in range(len(current_clause) - 1, -1, -1):
+            # Remove word if it is a noise word
+            if current_clause[token_position] in stop_words:
+                current_clause.pop(token_position)
+
+        # Remove the clause altogether if nothing left
+        if len(current_clause) == 0:
+            clauses.pop(clause_position)
+
+    return clauses
+
+
 def test_querying():
     # Set case sensitivity setting
     sensitivity = input('Type "1" to enable case sensitivity: ') == '1'
@@ -181,20 +206,8 @@ if __name__ == '__main__':
 
     # import noise words
     noise_words = set(line.strip() for line in open("Noisewords.txt", "r", encoding='utf8').readlines())
-
-    """ Filter all noise words and prune empty clauses from clause list. """
-    # Iterate backwards through the clause list
-    for clause_position in range(len(clause_list) - 1, -1, -1):
-        current_clause = clause_list[clause_position]
-        # Iterate backwards through the current clause
-        for token_position in range(len(current_clause) - 1, -1, -1):
-            # Remove word if it is a noise word
-            if current_clause[token_position] in noise_words:
-                current_clause.pop(token_position)
-
-        # Remove the clause altogether if nothing left
-        if len(current_clause) == 0:
-            clause_list.pop(clause_position)
+    # Filter all noise words and prune empty clauses from clause list.
+    clause_list = filter_clauses(clause_list, noise_words)
 
     results = []
     # go through each clause

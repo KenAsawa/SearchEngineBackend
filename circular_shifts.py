@@ -15,7 +15,8 @@ def circular_shift(src_text, url, main_list, title):  # Takes in a String, Strin
             line = " ".join(words)
             indexes.add(line)
             if line not in shift_to_url:
-                shift_to_url[line] = set().add(url)
+                shift_to_url[line] = set()
+                shift_to_url[line].add(url)
             else:
                 shift_to_url[line] = shift_to_url[line].get(line, []).add(url)
             url_to_title[url] = title

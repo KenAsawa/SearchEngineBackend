@@ -29,4 +29,5 @@ def main():
     scrape_url(url)
 
 
-main()
+if __name__ == '__main__':
+    main()
