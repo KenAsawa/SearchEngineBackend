@@ -13,6 +13,7 @@ def scrape_url(url):
 
     # get text
     text = soup.get_text()
+    title = soup.title.string
 
     # break into lines and remove leading and trailing space on each
     lines = (line.strip() for line in text.splitlines())
@@ -21,7 +22,7 @@ def scrape_url(url):
     # drop blank lines
     text = ' '.join(chunk for chunk in chunks if chunk)
 
-    return text
+    return text, title
 
 
 def main():

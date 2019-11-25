@@ -3,9 +3,10 @@ from scraper import scrape_url
 from search_engine import search, shifts_list, shift_to_url, url_to_title
 
 
-def index(url, title):
+def index(url):
+    print("Starting to scrape " + url)
     # Get website text
-    scraped_text = scrape_url(url)
+    scraped_text, title = scrape_url(url)
     # Circular shift it, get resulting associations
     shift_url_map, url_title_map = circular_shift(scraped_text, url, shifts_list, title)
     # Now need to resort the main list
@@ -18,17 +19,36 @@ def index(url, title):
             shift_to_url[shift] = shift_url_map[shift]
     # Merge new url/title map with existing map
     url_to_title.update(url_title_map)
+    print("Index creation for " + url + " complete")
+
+
+def test_scraper():
+    with open("./links_to_scrape.txt") as f:
+        lines = f.readlines()
+        for line in lines:
+            index(line.strip())
+
+
+def find():
+    for start in shifts_list:
+        for end in shifts_list[::-1]:
+            for word in start.split(" "):
+                if word in end:
+                    print(word)
+                    # return word
 
 
 def main():
-    index("https://stackoverflow.com/questions/328356/extracting-text-from-html-file-using-python",
-          "Extracting text from HTML file using Python - Stack Overflow")
-
-    query = input('Search Query: ')
-    case = (input('Case sensitive? (type "yes", default no): ').lower() + ' ')[0] == 'y'
-    urls, titles = search(query, case)
-    print(urls)
-    print(titles)
+    test_scraper()
+    # index("https://stackoverflow.com/questions/328356/extracting-text-from-html-file-using-python")
+    # find()
+    while True:
+        query = input('Search Query: ')
+        case = (input('Case sensitive? (type "yes", default no): ').lower() + ' ')[0] == 'y'
+        urls, titles, descriptions = search(query, case)
+        print(urls)
+        print(titles)
+        print(descriptions)
 
 
 if __name__ == '__main__':

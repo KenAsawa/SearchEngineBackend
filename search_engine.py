@@ -5,9 +5,11 @@ url_to_title = {}
 noise_words = set(line.strip() for line in open("Noisewords.txt", "r", encoding='utf8').readlines())
 
 
+# all four are fire store references
+
 def binary_search(arr, word, case_sensitive=False):
     """
-    Returns the index in an array of KWIC indices 
+    Returns the index in an array of KWIC indices
     """
 
     # Force lowercase if case insensitive
@@ -207,8 +209,20 @@ def search(search_query, case_sensitive):
     # All titles
     titles = [url_to_title[url] for url in urls]
 
+    # Generate descriptions
+    not_described = urls.copy()
+    descriptions = []
+    for shift in results:
+        for url in shift_to_url[shift]:
+            if url in not_described:
+                if len(shift) < 170:
+                    descriptions.append(shift)
+                else:
+                    descriptions.append(shift[:170] + '...')
+                not_described.remove(url)
+
     # Return
-    return urls, titles
+    return urls, titles, descriptions
 
 
 def test_querying():
