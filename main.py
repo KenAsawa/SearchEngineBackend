@@ -1,11 +1,6 @@
-import time
-
 from circular_shifts import circular_shift
 from scraper import scrape_url
-
-shifts_list = []
-shift_to_url = {}
-url_to_title = {}
+from search_engine import search, shifts_list, shift_to_url, url_to_title
 
 
 def index(url, title):
@@ -28,7 +23,13 @@ def index(url, title):
 def main():
     index("https://stackoverflow.com/questions/328356/extracting-text-from-html-file-using-python",
           "Extracting text from HTML file using Python - Stack Overflow")
-    index("https://www.yahoo.com", "Yahoo")
+
+    query = input('Search Query: ')
+    case = (input('Case sensitive? (type "yes", default no): ').lower() + ' ')[0] == 'y'
+    urls, titles = search(query, case)
+    print(urls)
+    print(titles)
 
 
-main()
+if __name__ == '__main__':
+    main()

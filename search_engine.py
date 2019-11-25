@@ -1,4 +1,8 @@
-from main import shifts_list, shift_to_url, url_to_title
+shifts_list = []
+shift_to_url = {}
+url_to_title = {}
+
+noise_words = set(line.strip() for line in open("Noisewords.txt", "r", encoding='utf8').readlines())
 
 
 def binary_search(arr, word, case_sensitive=False):
@@ -164,6 +168,49 @@ def filter_clauses(clauses, stop_words):
     return clauses
 
 
+def search(search_query, case_sensitive):
+    """
+    Searches the index for results matching the search query.
+    :param search_query: the string input from a user's search query
+    :param case_sensitive: whether or not this query will be case sensitive
+    :return: a list of URLs and a parallel list of corresponding titles
+    """
+
+    # Parse into clauses to match and blacklist to avoid
+    clause_list, blacklist = parse_keyword_combinations(search_query)
+    # Filter all noise words and prune empty clauses from clause list.
+    clause_list = filter_clauses(clause_list, noise_words)
+
+    results = []
+    # go through each clause
+    for c in clause_list:
+        # find matching index position based on first term in clause
+        index = binary_search(shifts_list, c[0], case_sensitive=case_sensitive)
+        # Ignore if no initial match found
+        if index == -1:
+            continue
+        # Ignore if match contains words that were blacklisted
+        if not len(blacklist) == 0 and contains_words(shifts_list[index], blacklist, case_sensitive=case_sensitive):
+            continue
+        # Ignore if match doesn't have remaining words in clause
+        if not contains_words(shifts_list[index], c[1:], case_sensitive=case_sensitive):
+            continue
+        # Match must be good
+        results.append(shifts_list[index])
+
+    # All urls to return
+    urls = set()
+    for shift in results:
+        urls = urls.union(shift_to_url[shift])
+    urls = list(urls)
+
+    # All titles
+    titles = [url_to_title[url] for url in urls]
+
+    # Return
+    return urls, titles
+
+
 def test_querying():
     # Set case sensitivity setting
     sensitivity = input('Type "1" to enable case sensitivity: ') == '1'
@@ -187,42 +234,3 @@ def test_op_parsing():
     print('\nNOT words:')
     for word in n:
         print(word)
-
-
-if __name__ == '__main__':
-    while True:
-        query = input('Search Query: ')
-        clause_list, n = parse_keyword_combinations(query)
-        cs = (input('Case sensitive? (type "yes", default no): ').lower() + ' ')[0] == 'y'
-
-        # import noise words
-        noise_words = set(line.strip() for line in open("Noisewords.txt", "r", encoding='utf8').readlines())
-        # Filter all noise words and prune empty clauses from clause list.
-        clause_list = filter_clauses(clause_list, noise_words)
-
-        results = []
-        # go through each clause
-        for c in clause_list:
-            # find matching index position based on first term in clause
-            index = binary_search(shifts_list, c[0], case_sensitive=cs)
-            # Ignore if no initial match found
-            if index == -1:
-                continue
-            # Ignore if match contains words that were blacklisted
-            if not len(n) == 0 and contains_words(shifts_list[index], n, case_sensitive=cs):
-                continue
-            # Ignore if match doesn't have remaining words in clause
-            if not contains_words(shifts_list[index], c[1:], case_sensitive=cs):
-                continue
-            # Match must be good
-            results.append(shifts_list[index])
-
-        # Show all urls that would be returned
-        if len(results) > 0:
-            urls = set()
-            for shift in results:
-                urls = urls.union(shift_to_url[shift])
-            print(urls)
-            print([url_to_title[url] for url in urls])
-        else:
-            print('No results found.')
