@@ -3,7 +3,27 @@ lowercase_shifts_list = []
 shift_to_url = {}
 url_to_title = {}
 noise_words = set(line.strip() for line in open("Noisewords.txt", "r", encoding='utf8').readlines())
+
+
 # all five are fire store references
+
+
+def set_globals(original_sl=None, lowercase_sl=None, shift_url=None, url_title=None, noises=None):
+    global original_shifts_list
+    global lowercase_shifts_list
+    global shift_to_url
+    global url_to_title
+    global noise_words
+    if original_sl is not None:
+        original_shifts_list = original_sl
+    if lowercase_sl is not None:
+        lowercase_shifts_list = lowercase_sl
+    if shift_url is not None:
+        shift_to_url = shift_url
+    if url_title is not None:
+        url_to_title = url_title
+    if noises is not None:
+        noise_words = noises
 
 
 def binary_search(arr, word, case_sensitive=False):
