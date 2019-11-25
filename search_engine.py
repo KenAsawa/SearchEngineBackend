@@ -191,14 +191,30 @@ def search(search_query, case_sensitive):
         # Ignore if no initial match found
         if index == -1:
             continue
-        # Ignore if match contains words that were blacklisted
-        if not len(blacklist) == 0 and contains_words(shifts_list[index], blacklist, case_sensitive=case_sensitive):
-            continue
-        # Ignore if match doesn't have remaining words in clause
-        if not contains_words(shifts_list[index], c[1:], case_sensitive=case_sensitive):
-            continue
-        # Match must be good
-        results.append(shifts_list[index])
+
+        # Get all matches
+        indices = []
+        # Scan for matches backwards
+        temp = index
+        while shifts_list[temp].startswith(c[0]):
+            indices.append(temp)
+            temp -= 1
+        # Scan for matches forwards
+        temp = index + 1
+        while shifts_list[temp].startswith(c[0]):
+            indices.append(temp)
+            temp += 1
+
+        for index in indices:
+            # Ignore if match contains words that were blacklisted
+            if not len(blacklist) == 0 and contains_words(shifts_list[index], blacklist, case_sensitive=case_sensitive):
+                continue
+            # Ignore if match doesn't have remaining words in clause
+            if not contains_words(shifts_list[index], c[1:], case_sensitive=case_sensitive):
+                continue
+            # Match must be good
+            results.append(shifts_list[index])
+    results = set(results)
 
     # All urls to return
     urls = set()
