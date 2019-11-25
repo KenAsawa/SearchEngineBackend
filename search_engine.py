@@ -1,3 +1,6 @@
+from main import shifts_list, shift_to_url, url_to_title
+
+
 def binary_search(arr, word, case_sensitive=False):
     """
     Returns the index in an array of KWIC indices 
@@ -30,7 +33,7 @@ def recursive_binary_search(array, word, left, right, case_sensitive):
     # Compute middle index
     mid = int((left + right) / 2)
     # Get middle word
-    mw = array[mid][0].split(' ')[0]
+    mw = array[mid].split(' ')[0]
     # Force lowercase if case insensitive
     if not case_sensitive:
         mw = mw.lower()
@@ -166,7 +169,7 @@ def test_querying():
     sensitivity = input('Type "1" to enable case sensitivity: ') == '1'
     query = input('Search Query: ')
     for token in query.split(' '):
-        index = binary_search(indices, token, case_sensitive=sensitivity)
+        index = binary_search(shifts_list, token, case_sensitive=sensitivity)
         if index == -1:
             print('{} not found.'.format(token))
         else:
@@ -187,50 +190,39 @@ def test_op_parsing():
 
 
 if __name__ == '__main__':
-    # dummy index table
-    indices = sorted([
-        ('bunny monday', ['apple.com', 'material.io']),
-        ('cat', ['google.com']),
-        ('dog', ['microsoft.com']),
-        ('engine', ['twitch.tv']),
-        ('hard wall', ['stackoverflow.com', 'nintendo.com']),
-        ('jump', ['youtube.com']),
-        ('monday bunny', ['apple.com', 'material.io']),
-        ('tuesday', ['dbrand.com']),
-        ('wall hard', ['stackoverflow.com', 'nintendo.com']),
-    ], key=lambda s: s[0].lower())
+    while True:
+        query = input('Search Query: ')
+        clause_list, n = parse_keyword_combinations(query)
+        cs = (input('Case sensitive? (type "yes", default no): ').lower() + ' ')[0] == 'y'
 
-    query = input('Search Query: ')
-    clause_list, n = parse_keyword_combinations(query)
-    cs = (input('Case sensitive? (type "yes", default no): ').lower() + ' ')[0] == 'y'
+        # import noise words
+        noise_words = set(line.strip() for line in open("Noisewords.txt", "r", encoding='utf8').readlines())
+        # Filter all noise words and prune empty clauses from clause list.
+        clause_list = filter_clauses(clause_list, noise_words)
 
-    # import noise words
-    noise_words = set(line.strip() for line in open("Noisewords.txt", "r", encoding='utf8').readlines())
-    # Filter all noise words and prune empty clauses from clause list.
-    clause_list = filter_clauses(clause_list, noise_words)
+        results = []
+        # go through each clause
+        for c in clause_list:
+            # find matching index position based on first term in clause
+            index = binary_search(shifts_list, c[0], case_sensitive=cs)
+            # Ignore if no initial match found
+            if index == -1:
+                continue
+            # Ignore if match contains words that were blacklisted
+            if not len(n) == 0 and contains_words(shifts_list[index], n, case_sensitive=cs):
+                continue
+            # Ignore if match doesn't have remaining words in clause
+            if not contains_words(shifts_list[index], c[1:], case_sensitive=cs):
+                continue
+            # Match must be good
+            results.append(shifts_list[index])
 
-    results = []
-    # go through each clause
-    for c in clause_list:
-        # find matching index position based on first term in clause
-        index = binary_search(indices, c[0], case_sensitive=cs)
-        # Ignore if no initial match found
-        if index == -1:
-            continue
-        # Ignore if match contains words that were blacklisted
-        if not len(n) == 0 and contains_words(indices[index][0], n, case_sensitive=cs):
-            continue
-        # Ignore if match doesn't have remaining words in clause
-        if not contains_words(indices[index][0], c[1:], case_sensitive=cs):
-            continue
-        # Match must be good
-        results.append(index)
-
-    # Show all urls that would be returned
-    if len(results) > 0:
-        urls = []
-        for index in results:
-            urls += indices[index][1]
-        print(set(urls))
-    else:
-        print('No results found.')
+        # Show all urls that would be returned
+        if len(results) > 0:
+            urls = set()
+            for shift in results:
+                urls = urls.union(shift_to_url[shift])
+            print(urls)
+            print([url_to_title[url] for url in urls])
+        else:
+            print('No results found.')

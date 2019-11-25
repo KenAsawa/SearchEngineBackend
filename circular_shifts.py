@@ -21,7 +21,7 @@ def circular_shift(src_text, url, main_list, title):  # Takes in a String, Strin
         # Shifts first word to the end
         words.append(words.pop(0))
     # Alphabetize the tuple list.
-    indexes = sorted(list(indexes), key=lambda s: s[0].lower())
+    indexes = sorted(list(indexes), key=lambda s: s.lower())
     # Merge new tuple list with main list
     main_list += indexes
     return shift_to_url, url_to_title
