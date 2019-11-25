@@ -1,6 +1,6 @@
 from circular_shifts import circular_shift
 from scraper import scrape_url
-from search_engine import search, shifts_list, shift_to_url, url_to_title
+from search_engine import search, original_shifts_list, lowercase_shifts_list, shift_to_url, url_to_title
 
 
 def index(url):
@@ -8,9 +8,10 @@ def index(url):
     # Get website text
     scraped_text, title = scrape_url(url)
     # Circular shift it, get resulting associations
-    shift_url_map, url_title_map = circular_shift(scraped_text, url, shifts_list, title)
+    shift_url_map, url_title_map = circular_shift(scraped_text, url, original_shifts_list, lowercase_shifts_list, title)
     # Now need to resort the main list
-    shifts_list.sort(key=lambda s: s.lower())
+    original_shifts_list.sort()
+    lowercase_shifts_list.sort()
     # Merge new shift/url map with existing map
     for shift in shift_url_map:
         if shift in shift_to_url:
@@ -29,13 +30,13 @@ def test_scraper():
             index(line.strip())
 
 
-def find():
-    for start in shifts_list:
-        for end in shifts_list[::-1]:
-            for word in start.split(" "):
-                if word in end:
-                    print(word)
-                    # return word
+# def find():
+#     for start in shifts_list:
+#         for end in shifts_list[::-1]:
+#             for word in start.split(" "):
+#                 if word in end:
+#                     print(word)
+#                     # return word
 
 
 def main():

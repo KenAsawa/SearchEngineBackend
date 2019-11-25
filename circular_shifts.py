@@ -2,26 +2,37 @@ noise_words_file = open("Noisewords.txt", "r", encoding='utf8')
 noise_words = set(line.strip() for line in noise_words_file.readlines())
 
 
-def circular_shift(src_text, url, main_list, title):  # Takes in a String, String, List, String
+def circular_shift(src_text, url, original, lowercase, title):  # Takes in a String, String, List, String
     # Return empty array if input line is empty
     if len(src_text) == 0:
-        return main_list
+        return {}, {}
+
     words = src_text.split(" ")
-    indexes = set()
+    original_indexes = set()
+    lowercase_indexes = set()
     shift_to_url = {}
     url_to_title = {}
     for i in range(len(words)):
         if words[0] not in noise_words:
             line = " ".join(words)
-            indexes.add(line)
+            original_indexes.add(line)
+            lowercase_indexes.add(line.lower())
+
             if line not in shift_to_url:
                 shift_to_url[line] = set()
             shift_to_url[line].add(url)
+
+            if line.lower() not in shift_to_url:
+                shift_to_url[line.lower()] = set()
+            shift_to_url[line.lower()].add(url)
+
             url_to_title[url] = title
         # Shifts first word to the end
         words.append(words.pop(0))
     # Alphabetize the tuple list.
-    indexes = sorted(list(indexes), key=lambda s: s.lower())
+    original_indexes = sorted(list(original_indexes))
+    lowercase_indexes = sorted(list(lowercase_indexes))
     # Merge new tuple list with main list
-    main_list += indexes
+    original += original_indexes
+    lowercase += lowercase_indexes
     return shift_to_url, url_to_title

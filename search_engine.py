@@ -1,11 +1,10 @@
-shifts_list = []
+original_shifts_list = []
+lowercase_shifts_list = []
 shift_to_url = {}
 url_to_title = {}
-
 noise_words = set(line.strip() for line in open("Noisewords.txt", "r", encoding='utf8').readlines())
+# all five are fire store references
 
-
-# all four are fire store references
 
 def binary_search(arr, word, case_sensitive=False):
     """
@@ -40,16 +39,13 @@ def recursive_binary_search(array, word, left, right, case_sensitive):
     mid = int((left + right) / 2)
     # Get middle word
     mw = array[mid].split(' ')[0]
-    # Force lowercase if case insensitive
-    if not case_sensitive:
-        mw = mw.lower()
 
     # Return desired index accordingly
-    if mw == word:
+    if word == mw:
         return mid
-    if word < mw.lower():
+    if word < mw:
         return recursive_binary_search(array, word, left, mid - 1, case_sensitive)
-    if word > mw.lower():
+    if word > mw:
         return recursive_binary_search(array, word, mid + 1, right, case_sensitive)
 
 
@@ -178,6 +174,10 @@ def search(search_query, case_sensitive):
     :return: a list of URLs and a parallel list of corresponding titles
     """
 
+    if not case_sensitive:
+        search_query = search_query.lower()
+    target_list = original_shifts_list if case_sensitive else lowercase_shifts_list
+
     # Parse into clauses to match and blacklist to avoid
     clause_list, blacklist = parse_keyword_combinations(search_query)
     # Filter all noise words and prune empty clauses from clause list.
@@ -187,33 +187,33 @@ def search(search_query, case_sensitive):
     # go through each clause
     for c in clause_list:
         # find matching index position based on first term in clause
-        index = binary_search(shifts_list, c[0], case_sensitive=case_sensitive)
+        index = binary_search(target_list, c[0], case_sensitive=case_sensitive)
         # Ignore if no initial match found
         if index == -1:
             continue
 
         # Get all matches
         indices = []
-        # Scan for matches backwards
+        # Scan for matches going backwards
         temp = index
-        while shifts_list[temp].startswith(c[0]):
+        while target_list[temp].split(' ')[0] == c[0]:
             indices.append(temp)
             temp -= 1
-        # Scan for matches forwards
+        # Scan for matches going forwards
         temp = index + 1
-        while shifts_list[temp].startswith(c[0]):
+        while target_list[temp].split(' ')[0] == c[0]:
             indices.append(temp)
             temp += 1
 
         for index in indices:
             # Ignore if match contains words that were blacklisted
-            if not len(blacklist) == 0 and contains_words(shifts_list[index], blacklist, case_sensitive=case_sensitive):
+            if not len(blacklist) == 0 and contains_words(target_list[index], blacklist, case_sensitive=case_sensitive):
                 continue
             # Ignore if match doesn't have remaining words in clause
-            if not contains_words(shifts_list[index], c[1:], case_sensitive=case_sensitive):
+            if not contains_words(target_list[index], c[1:], case_sensitive=case_sensitive):
                 continue
             # Match must be good
-            results.append(shifts_list[index])
+            results.append(target_list[index])
     results = set(results)
 
     # All urls to return
@@ -239,28 +239,3 @@ def search(search_query, case_sensitive):
 
     # Return
     return urls, titles, descriptions
-
-
-def test_querying():
-    # Set case sensitivity setting
-    sensitivity = input('Type "1" to enable case sensitivity: ') == '1'
-    query = input('Search Query: ')
-    for token in query.split(' '):
-        index = binary_search(shifts_list, token, case_sensitive=sensitivity)
-        if index == -1:
-            print('{} not found.'.format(token))
-        else:
-            print('{} found at index {}.'.format(token, index))
-
-
-def test_op_parsing():
-    query = input('Search Query: ')
-    c, n = parse_keyword_combinations(query)
-
-    print('AND combinations:')
-    for comb in c:
-        print(comb)
-
-    print('\nNOT words:')
-    for word in n:
-        print(word)
