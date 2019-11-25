@@ -16,9 +16,7 @@ def circular_shift(src_text, url, main_list, title):  # Takes in a String, Strin
             indexes.add(line)
             if line not in shift_to_url:
                 shift_to_url[line] = set()
-                shift_to_url[line].add(url)
-            else:
-                shift_to_url[line] = shift_to_url[line].get(line, []).add(url)
+            shift_to_url[line].add(url)
             url_to_title[url] = title
         # Shifts first word to the end
         words.append(words.pop(0))
@@ -26,4 +24,4 @@ def circular_shift(src_text, url, main_list, title):  # Takes in a String, Strin
     indexes = sorted(list(indexes), key=lambda s: s[0].lower())
     # Merge new tuple list with main list
     main_list += indexes
-    return main_list
+    return shift_to_url, url_to_title
