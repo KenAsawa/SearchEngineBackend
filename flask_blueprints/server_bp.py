@@ -1,11 +1,36 @@
 import json
+from urllib.parse import urlparse
 
 from flask import Blueprint, jsonify, request
 
-from search_engine import search
+from search_engine import search, noise_words, index
 
 server_bp = Blueprint('server_bp', __name__)
 server_ws = Blueprint('server_ws', __name__)
+
+
+@server_bp.route("/noise-words", methods=["GET"])
+def get_noise():
+    return jsonify({"noise_words": list(noise_words)})
+
+
+@server_bp.route("/index", methods=["POST"])
+def get_noise():
+    if request.method == "POST":
+        body = request.json
+        url = body['url'] if 'url' in body else None
+        if url is not None:
+            parse = urlparse(url)
+            if parse.scheme != '' and parse.netloc != '':
+                try:
+                    index(url)
+                    return jsonify({"status": "'{}' was successfully indexed.".format(url)})
+                except Exception as e:
+                    return jsonify({"status": "An error occurred. Please try again."})
+            else:
+                return jsonify({"status": "Error: Malformed URL."})
+        else:
+            return jsonify({"status": "Error: No URL was provided."})
 
 
 @server_bp.route("/search", methods=["POST"])
