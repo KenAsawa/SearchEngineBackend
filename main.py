@@ -6,7 +6,6 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 from firebase_admin import storage
 
-import server
 from search_engine import original_shifts_list, lowercase_shifts_list, shift_to_url, url_to_title, noise_words, \
     set_globals
 
@@ -112,8 +111,6 @@ def main():
     # upload_to_bucket()
     # push_to_db()
     read_from_bucket()
-
-    server.run(addr='localhost', port=8000)
 
     # while True:
     #     query = input('Search Query: ')
