@@ -10,7 +10,7 @@ def re_strip(string):
     :param string: a string to clean
     :return: A cleaned version of the string
     """
-    pattern = "[^A-Za-z]"
+    pattern = "[^A-Za-z0-9]"
     result = re.sub(f"^{pattern}+", "", string)
     result = re.sub(f"{pattern}+$", "", result)
     return result

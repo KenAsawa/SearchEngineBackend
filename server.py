@@ -11,6 +11,8 @@ import cgi
 import json
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
+from search_engine import search, index
+
 
 class SearchEngineServer(BaseHTTPRequestHandler):
     def _set_headers(self):
@@ -32,14 +34,27 @@ class SearchEngineServer(BaseHTTPRequestHandler):
         payload_string = self.rfile.read(length).decode('utf-8')
         payload = json.loads(payload_string) if payload_string else {}
 
+        # Build return response
         response = {}
-        if 'query' in payload:
-            response['urls'] = []
-            response['titles'] = []
-            response['descriptions'] = []
-            response['complete'] = True
+
+        # Search query event
+        if 'query' in payload and 'case_sensitive' in payload:
+            urls, titles, descriptions = search(payload['query'], payload['case_sensitive'])
+            response['urls'], response['titles'], response['descriptions'] = urls, titles, descriptions
+
+        # Index a new site
         elif 'index' in payload:
-            response['complete'] = True
+            try:
+                index(payload['index'])
+                response['complete'] = True
+            except:
+                response['complete'] = False
+
+        # Search input
+        elif 'autofill' in payload:
+            response['complete'] = False
+
+        # Anything else
         else:
             response['complete'] = False
 

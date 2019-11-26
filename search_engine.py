@@ -1,3 +1,7 @@
+from circular_shifts import circular_shift
+from scraper import scrape_url
+
+# all five are fire store references
 original_shifts_list = []
 lowercase_shifts_list = []
 shift_to_url = {}
@@ -5,7 +9,28 @@ url_to_title = {}
 noise_words = set(line.strip() for line in open("Noisewords.txt", "r", encoding='utf8').readlines())
 
 
-# all five are fire store references
+def index(url):
+    print("Starting to scrape " + url)
+    # Get website text
+    try:
+        scraped_text, title = scrape_url(url)
+    except Exception as e:
+        print(e)
+        return
+    # Circular shift it, get resulting associations
+    shift_url_map, url_title_map = circular_shift(scraped_text, url, original_shifts_list, lowercase_shifts_list, title)
+    # Now need to resort the main list
+    original_shifts_list.sort()
+    lowercase_shifts_list.sort()
+    # Merge new shift/url map with existing map
+    for shift in shift_url_map:
+        if shift in shift_to_url:
+            shift_to_url[shift] = shift_to_url[shift].union(shift_url_map[shift])
+        else:
+            shift_to_url[shift] = shift_url_map[shift]
+    # Merge new url/title map with existing map
+    url_to_title.update(url_title_map)
+    print("Index creation for " + url + " complete")
 
 
 def set_globals(original_sl=None, lowercase_sl=None, shift_url=None, url_title=None, noises=None):
@@ -191,7 +216,7 @@ def search(search_query, case_sensitive):
     Searches the index for results matching the search query.
     :param search_query: the string input from a user's search query
     :param case_sensitive: whether or not this query will be case sensitive
-    :return: a list of URLs and a parallel list of corresponding titles
+    :return: a list of URLs and parallel lists of corresponding titles and descriptions
     """
 
     if not case_sensitive:
