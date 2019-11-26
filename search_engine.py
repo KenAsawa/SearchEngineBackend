@@ -222,12 +222,18 @@ def search(search_query, case_sensitive, noise):
     for i in range(len(noise)):
         noise[i] = noise[i].lower()
 
-    if not case_sensitive:
-        search_query = search_query.lower()
-    target_list = original_shifts_list if case_sensitive else lowercase_shifts_list
-
     # Parse into clauses to match and blacklist to avoid
     clause_list, blacklist = parse_keyword_combinations(search_query)
+
+    # Make case irrelevant if needed
+    if not case_sensitive:
+        for c in clause_list:
+            for pos in range(len(c)):
+                c[pos] = c[pos].lower()
+
+    # Which index list to search in
+    target_list = original_shifts_list if case_sensitive else lowercase_shifts_list
+
     # Filter all noise words and prune empty clauses from clause list.
     clause_list = filter_clauses(clause_list, noise)
 

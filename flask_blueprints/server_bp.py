@@ -15,7 +15,7 @@ def get_noise():
 
 
 @server_bp.route("/index", methods=["POST"])
-def get_noise():
+def live_index():
     if request.method == "POST":
         body = request.json
         url = body['url'] if 'url' in body else None
@@ -24,13 +24,13 @@ def get_noise():
             if parse.scheme != '' and parse.netloc != '':
                 try:
                     index(url)
-                    return jsonify({"status": "'{}' was successfully indexed.".format(url)})
+                    return jsonify({"status": 1, "message": "'{}' was successfully indexed.".format(url)})
                 except Exception as e:
-                    return jsonify({"status": "An error occurred. Please try again."})
+                    return jsonify({"status": 2, "message": "An error occurred. Please try again."})
             else:
-                return jsonify({"status": "Error: Malformed URL."})
+                return jsonify({"status": 2, "message": "Error: Malformed URL."})
         else:
-            return jsonify({"status": "Error: No URL was provided."})
+            return jsonify({"status": 2, "message": "Error: No URL provided."})
 
 
 @server_bp.route("/search", methods=["POST"])
