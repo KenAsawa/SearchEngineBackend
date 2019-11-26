@@ -141,9 +141,16 @@ def push_to_db():
 
 
 def main():
-    # test_scraper()
-    # write_to_local()
-    read_from_local()
+    if os.path.exists("original_shifts.json") and \
+            os.path.exists("lowercase_shifts.json") and \
+            os.path.exists("shift_to_url.json") and \
+            os.path.exists("url_to_title.json") and \
+            os.path.exists("noise_words.json"):
+        read_from_local()
+    else:
+        test_scraper()
+        write_to_local()
+
     # upload_to_bucket()
     # push_to_db()
     # read_from_bucket()
