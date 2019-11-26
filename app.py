@@ -12,6 +12,8 @@ from flask_sockets import Sockets
 from gevent import pywsgi
 from geventwebsocket.handler import WebSocketHandler
 
+from main import read_from_bucket
+
 operating_system = str(platform.system()).lower()
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
@@ -58,12 +60,17 @@ def kill_port(port):
 
 
 def run_app(url, port, start_redis):
+    print("Downloading database")
+    read_from_bucket()
+    print("Database downloaded")
     if "darwin" in operating_system:
         if start_redis:
             subprocess.run("brew services stop redis && brew services start redis", shell=True)
         kill_port(port)
+    print("Server Started")
     server = pywsgi.WSGIServer((url, port), app, handler_class=WebSocketHandler)
     server.serve_forever()
+    print("Server Started")
     # app.run(host=url, port=port, threaded=True)
 
 

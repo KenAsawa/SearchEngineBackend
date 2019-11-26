@@ -2,6 +2,8 @@ import json
 
 from flask import Blueprint, jsonify, request
 
+from search_engine import search
+
 server_bp = Blueprint('server_bp', __name__)
 server_ws = Blueprint('example_ws', __name__)
 
@@ -11,7 +13,9 @@ def start_dialog():
     if request.method == "POST":
         body = request.json
         print(body)
-    return jsonify({"urls": [], "titles": [], "descriptions": []})
+        urls, titles, descriptions = search(body['query'], body['case_sensitive'])
+        return jsonify({"urls": urls, "titles": titles, "descriptions": descriptions})
+    jsonify({"urls": [], "titles": [], "descriptions": []})
 
 
 @server_ws.route("/echo-example")
