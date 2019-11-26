@@ -196,12 +196,12 @@ def filter_clauses(clauses, stop_words):
     """
 
     # Iterate backwards through the clause list
-    for clause_position in range(len(clauses) - 1, -1, -1):
+    for clause_position in range(len(clauses))[::-1]:
         current_clause = clauses[clause_position]
         # Iterate backwards through the current clause
-        for token_position in range(len(current_clause) - 1, -1, -1):
+        for token_position in range(len(current_clause))[::-1]:
             # Remove word if it is a noise word
-            if current_clause[token_position] in stop_words:
+            if current_clause[token_position].lower() in stop_words:
                 current_clause.pop(token_position)
 
         # Remove the clause altogether if nothing left
@@ -211,13 +211,16 @@ def filter_clauses(clauses, stop_words):
     return clauses
 
 
-def search(search_query, case_sensitive):
+def search(search_query, case_sensitive, noise):
     """
     Searches the index for results matching the search query.
     :param search_query: the string input from a user's search query
     :param case_sensitive: whether or not this query will be case sensitive
+    :param noise: words that should be ignored altogether.
     :return: a list of URLs and parallel lists of corresponding titles and descriptions
     """
+    for i in range(len(noise)):
+        noise[i] = noise[i].lower()
 
     if not case_sensitive:
         search_query = search_query.lower()
@@ -226,39 +229,39 @@ def search(search_query, case_sensitive):
     # Parse into clauses to match and blacklist to avoid
     clause_list, blacklist = parse_keyword_combinations(search_query)
     # Filter all noise words and prune empty clauses from clause list.
-    clause_list = filter_clauses(clause_list, noise_words)
+    clause_list = filter_clauses(clause_list, noise)
 
     results = []
     # go through each clause
     for c in clause_list:
         # find matching index position based on first term in clause
-        index = binary_search(target_list, c[0], case_sensitive=case_sensitive)
+        position = binary_search(target_list, c[0], case_sensitive=case_sensitive)
         # Ignore if no initial match found
-        if index == -1:
+        if position == -1:
             continue
 
         # Get all matches
         indices = []
         # Scan for matches going backwards
-        temp = index
+        temp = position
         while target_list[temp].split(' ')[0] == c[0]:
             indices.append(temp)
             temp -= 1
         # Scan for matches going forwards
-        temp = index + 1
+        temp = position + 1
         while target_list[temp].split(' ')[0] == c[0]:
             indices.append(temp)
             temp += 1
 
-        for index in indices:
+        for position in indices:
             # Ignore if match contains words that were blacklisted
-            if not len(blacklist) == 0 and contains_words(target_list[index], blacklist, case_sensitive=case_sensitive):
+            if len(blacklist) > 0 and contains_words(target_list[position], blacklist, case_sensitive=case_sensitive):
                 continue
             # Ignore if match doesn't have remaining words in clause
-            if not contains_words(target_list[index], c[1:], case_sensitive=case_sensitive):
+            if not contains_words(target_list[position], c[1:], case_sensitive=case_sensitive):
                 continue
             # Match must be good
-            results.append(target_list[index])
+            results.append(target_list[position])
     results = set(results)
 
     # All urls to return

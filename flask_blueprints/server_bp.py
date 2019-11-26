@@ -12,10 +12,13 @@ server_ws = Blueprint('server_ws', __name__)
 def search_index():
     if request.method == "POST":
         body = request.json
-        print(body)
-        urls, titles, descriptions = search(body['query'], body['case_sensitive'])
+        query = body['query'] if 'query' in body else ''
+        case = body['case_sensitive'] if 'case_sensitive' in body else False
+        noise = body['noise_words'] if 'noise_words' in body else []
+        urls, titles, descriptions = search(query, case, noise)
         return jsonify({"urls": urls, "titles": titles, "descriptions": descriptions})
-    jsonify({"urls": [], "titles": [], "descriptions": []})
+
+    return jsonify({"urls": [], "titles": [], "descriptions": []})
 
 
 @server_ws.route("/echo-example")
