@@ -1,7 +1,11 @@
+from readerwriterlock import rwlock
+
 from circular_shifts import circular_shift
 from scraper import scrape_url
 
-# all five are fire store references
+# Reader/Writer Mutex Lock
+database_lock = rwlock.RWLockFair()
+
 original_shifts_list = []
 lowercase_shifts_list = []
 shift_to_url = {}
@@ -10,27 +14,33 @@ noise_words = set(line.strip() for line in open("Noisewords.txt", "r", encoding=
 
 
 def index(url):
-    print("Starting to scrape " + url)
-    # Get website text
-    try:
-        scraped_text, title = scrape_url(url)
-    except Exception as e:
-        print(e)
+    if url in url_to_title:
+        print("'{}' has already been indexed.".format(url))
         return
-    # Circular shift it, get resulting associations
-    shift_url_map, url_title_map = circular_shift(scraped_text, url, original_shifts_list, lowercase_shifts_list, title)
-    # Now need to resort the main list
-    original_shifts_list.sort()
-    lowercase_shifts_list.sort()
-    # Merge new shift/url map with existing map
-    for shift in shift_url_map:
-        if shift in shift_to_url:
-            shift_to_url[shift] = shift_to_url[shift].union(shift_url_map[shift])
-        else:
-            shift_to_url[shift] = shift_url_map[shift]
-    # Merge new url/title map with existing map
-    url_to_title.update(url_title_map)
-    print("Index creation for " + url + " complete")
+
+    with database_lock.gen_wlock():
+        print("Starting to scrape " + url)
+        # Get website text
+        try:
+            scraped_text, title = scrape_url(url)
+        except Exception as e:
+            print(e)
+            return
+        # Circular shift it, get resulting associations
+        shift_url_map, url_title_map = \
+            circular_shift(scraped_text, url, original_shifts_list, lowercase_shifts_list, title)
+        # Now need to resort the main list
+        original_shifts_list.sort()
+        lowercase_shifts_list.sort()
+        # Merge new shift/url map with existing map
+        for shift in shift_url_map:
+            if shift in shift_to_url:
+                shift_to_url[shift] = shift_to_url[shift].union(shift_url_map[shift])
+            else:
+                shift_to_url[shift] = shift_url_map[shift]
+        # Merge new url/title map with existing map
+        url_to_title.update(url_title_map)
+        print("Index creation for " + url + " complete")
 
 
 def set_globals(original_sl=None, lowercase_sl=None, shift_url=None, url_title=None, noises=None):
@@ -219,77 +229,80 @@ def search(search_query, case_sensitive, noise):
     :param noise: words that should be ignored altogether.
     :return: a list of URLs and parallel lists of corresponding titles and descriptions
     """
-    for i in range(len(noise)):
-        noise[i] = noise[i].lower()
 
-    # Parse into clauses to match and blacklist to avoid
-    clause_list, blacklist = parse_keyword_combinations(search_query)
+    with database_lock.gen_rlock():
+        for i in range(len(noise)):
+            noise[i] = noise[i].lower()
 
-    # Make case irrelevant if needed
-    if not case_sensitive:
+        # Parse into clauses to match and blacklist to avoid
+        clause_list, blacklist = parse_keyword_combinations(search_query)
+
+        # Make case irrelevant if needed
+        if not case_sensitive:
+            for c in clause_list:
+                for pos in range(len(c)):
+                    c[pos] = c[pos].lower()
+
+        # Which index list to search in
+        target_list = original_shifts_list if case_sensitive else lowercase_shifts_list
+
+        # Filter all noise words and prune empty clauses from clause list.
+        clause_list = filter_clauses(clause_list, noise)
+
+        results = []
+        # go through each clause
         for c in clause_list:
-            for pos in range(len(c)):
-                c[pos] = c[pos].lower()
-
-    # Which index list to search in
-    target_list = original_shifts_list if case_sensitive else lowercase_shifts_list
-
-    # Filter all noise words and prune empty clauses from clause list.
-    clause_list = filter_clauses(clause_list, noise)
-
-    results = []
-    # go through each clause
-    for c in clause_list:
-        # find matching index position based on first term in clause
-        position = binary_search(target_list, c[0], case_sensitive=case_sensitive)
-        # Ignore if no initial match found
-        if position == -1:
-            continue
-
-        # Get all matches
-        indices = []
-        # Scan for matches going backwards
-        temp = position
-        while target_list[temp].split(' ')[0] == c[0]:
-            indices.append(temp)
-            temp -= 1
-        # Scan for matches going forwards
-        temp = position + 1
-        while target_list[temp].split(' ')[0] == c[0]:
-            indices.append(temp)
-            temp += 1
-
-        for position in indices:
-            # Ignore if match contains words that were blacklisted
-            if len(blacklist) > 0 and contains_words(target_list[position], blacklist, case_sensitive=case_sensitive):
+            # find matching index position based on first term in clause
+            position = binary_search(target_list, c[0], case_sensitive=case_sensitive)
+            # Ignore if no initial match found
+            if position == -1:
                 continue
-            # Ignore if match doesn't have remaining words in clause
-            if not contains_words(target_list[position], c[1:], case_sensitive=case_sensitive):
-                continue
-            # Match must be good
-            results.append(target_list[position])
-    results = set(results)
 
-    # All urls to return
-    urls = set()
-    for shift in results:
-        urls = urls.union(shift_to_url[shift])
-    urls = list(urls)
+            # Get all matches
+            indices = []
+            # Scan for matches going backwards
+            temp = position
+            while target_list[temp].split(' ')[0] == c[0]:
+                indices.append(temp)
+                temp -= 1
+            # Scan for matches going forwards
+            temp = position + 1
+            while target_list[temp].split(' ')[0] == c[0]:
+                indices.append(temp)
+                temp += 1
 
-    # All titles
-    titles = [url_to_title[url] for url in urls]
+            for position in indices:
+                # Ignore if match contains words that were blacklisted
+                if len(blacklist) > 0 and contains_words(target_list[position], blacklist,
+                                                         case_sensitive=case_sensitive):
+                    continue
+                # Ignore if match doesn't have remaining words in clause
+                if not contains_words(target_list[position], c[1:], case_sensitive=case_sensitive):
+                    continue
+                # Match must be good
+                results.append(target_list[position])
+        results = set(results)
 
-    # Generate descriptions
-    not_described = urls.copy()
-    descriptions = []
-    for shift in results:
-        for url in shift_to_url[shift]:
-            if url in not_described:
-                if len(shift) < 170:
-                    descriptions.append(shift)
-                else:
-                    descriptions.append(shift[:170] + '...')
-                not_described.remove(url)
+        # All urls to return
+        urls = set()
+        for shift in results:
+            urls = urls.union(shift_to_url[shift])
+        urls = list(urls)
 
-    # Return
-    return urls, titles, descriptions
+        # All titles
+        titles = [url_to_title[url] for url in urls]
+
+        # Generate descriptions
+        not_described = urls.copy()
+        descriptions = []
+        for shift in results:
+            for url in shift_to_url[shift]:
+                if url in not_described:
+                    if len(shift) < 170:
+                        descriptions.append(shift)
+                    else:
+                        descriptions.append(shift[:170] + '...')
+                    not_described.remove(url)
+
+        # Return
+        return urls, titles, descriptions

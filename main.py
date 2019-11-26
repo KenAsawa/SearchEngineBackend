@@ -158,7 +158,7 @@ def main():
     while True:
         query = input('Search Query: ')
         case = (input('Case sensitive? (type "yes", default no): ').lower() + ' ')[0] == 'y'
-        urls, titles, descriptions = search(query, case)
+        urls, titles, descriptions = search(query, case, noise_words)
         print(urls)
         print(titles)
         print(descriptions)
