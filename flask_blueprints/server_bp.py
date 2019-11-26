@@ -22,11 +22,15 @@ def live_index():
         if url is not None:
             parse = urlparse(url)
             if parse.scheme != '' and parse.netloc != '':
-                try:
-                    index(url)
+                result = index(url)
+                if result is None:
+                    return jsonify(
+                        {"status": 2, "message": "'{}' was unable to be scraped. Please try again.".format(url)})
+                elif result is 1:
+                    return jsonify(
+                        {"status": 2, "message": "'{}' was already indexed.".format(url)})
+                else:
                     return jsonify({"status": 1, "message": "'{}' was successfully indexed.".format(url)})
-                except Exception as e:
-                    return jsonify({"status": 2, "message": "An error occurred. Please try again."})
             else:
                 return jsonify({"status": 2, "message": "Error: Malformed URL."})
         else:
