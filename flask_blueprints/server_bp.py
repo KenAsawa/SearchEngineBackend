@@ -40,7 +40,8 @@ def search_index():
         query = body['query'] if 'query' in body else ''
         case = body['case_sensitive'] if 'case_sensitive' in body else False
         noise = body['noise_words'] if 'noise_words' in body else []
-        urls, titles, descriptions = search(query, case, noise if type(noise) is list else [])
+        noise = [word['word'] for word in noise]
+        urls, titles, descriptions = search(query, case, noise)
         return jsonify({"urls": urls, "titles": titles, "descriptions": descriptions})
 
     return jsonify({"urls": [], "titles": [], "descriptions": []})

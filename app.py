@@ -5,14 +5,14 @@ import subprocess
 from subprocess import Popen, PIPE
 
 from flask import Flask, render_template
-from flask_blueprints.server_bp import server_bp
-from flask_blueprints.server_bp import server_ws
 from flask_cors import CORS
 from flask_sockets import Sockets
 from gevent import pywsgi
 from geventwebsocket.handler import WebSocketHandler
 
-from main import read_from_bucket, read_from_local, test_scraper, write_to_local
+from flask_blueprints.server_bp import server_bp
+from flask_blueprints.server_bp import server_ws
+from main import read_from_local, test_scraper, write_to_local
 
 operating_system = str(platform.system()).lower()
 

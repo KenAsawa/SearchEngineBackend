@@ -16,7 +16,7 @@ def re_strip(string):
     return result
 
 
-def circular_shift(src_text, url, original, lowercase, title):  # Takes in a String, String, List, String
+def circular_shift(src_text, url, original, lowercase, title):
     # Return empty array if input line is empty
     if len(src_text) == 0:
         return {}, {}
