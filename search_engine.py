@@ -1,3 +1,5 @@
+import copy
+
 from readerwriterlock import rwlock
 
 from circular_shifts import circular_shift
@@ -14,33 +16,53 @@ noise_words = set(line.strip() for line in open("Noisewords.txt", "r", encoding=
 
 
 def index(url):
+    global original_shifts_list
+    global lowercase_shifts_list
+    global shift_to_url
+    global url_to_title
+
     if url in url_to_title:
         print("'{}' has already been indexed.".format(url))
-        return
+        return 1
 
+    with database_lock.gen_rlock():
+        osl = copy.deepcopy(original_shifts_list)
+        lsl = copy.deepcopy(lowercase_shifts_list)
+        stu = copy.deepcopy(shift_to_url)
+        utt = copy.deepcopy(url_to_title)
+        print('Deep copy successful')
+
+    print("Starting to scrape " + url)
+    # Get website text
+    try:
+        scraped_text, title = scrape_url(url)
+    except Exception as e:
+        print(e)
+        return None
+    # Circular shift it, get resulting associations
+    shift_url_map, url_title_map = \
+        circular_shift(scraped_text, url, osl, lsl, title)
+    # Now need to resort the main list
+    osl.sort()
+    lsl.sort()
+    # Merge new shift/url map with existing map
+    for shift in shift_url_map:
+        if shift in stu:
+            stu[shift] = stu[shift].union(shift_url_map[shift])
+        else:
+            stu[shift] = shift_url_map[shift]
+    # Merge new url/title map with existing map
+    utt.update(url_title_map)
+
+    print('Acquiring write lock.')
     with database_lock.gen_wlock():
-        print("Starting to scrape " + url)
-        # Get website text
-        try:
-            scraped_text, title = scrape_url(url)
-        except Exception as e:
-            print(e)
-            return
-        # Circular shift it, get resulting associations
-        shift_url_map, url_title_map = \
-            circular_shift(scraped_text, url, original_shifts_list, lowercase_shifts_list, title)
-        # Now need to resort the main list
-        original_shifts_list.sort()
-        lowercase_shifts_list.sort()
-        # Merge new shift/url map with existing map
-        for shift in shift_url_map:
-            if shift in shift_to_url:
-                shift_to_url[shift] = shift_to_url[shift].union(shift_url_map[shift])
-            else:
-                shift_to_url[shift] = shift_url_map[shift]
-        # Merge new url/title map with existing map
-        url_to_title.update(url_title_map)
-        print("Index creation for " + url + " complete")
+        original_shifts_list = osl
+        lowercase_shifts_list = lsl
+        shift_to_url = stu
+        url_to_title = utt
+
+    print("Index creation for " + url + " complete")
+    return True
 
 
 def set_globals(original_sl=None, lowercase_sl=None, shift_url=None, url_title=None, noises=None):

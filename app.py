@@ -7,8 +7,6 @@ from subprocess import Popen, PIPE
 from flask import Flask, render_template
 from flask_cors import CORS
 from flask_sockets import Sockets
-from gevent import pywsgi
-from geventwebsocket.handler import WebSocketHandler
 
 from flask_blueprints.server_bp import server_bp
 from flask_blueprints.server_bp import server_ws
@@ -73,10 +71,10 @@ def run_app(url, port, start_redis):
             subprocess.run("brew services stop redis && brew services start redis", shell=True)
         kill_port(port)
     print("Server Started")
-    server = pywsgi.WSGIServer((url, port), app, handler_class=WebSocketHandler)
-    server.serve_forever()
+    # server = pywsgi.WSGIServer((url, port), app, handler_class=WebSocketHandler)
+    # server.serve_forever()
     print("Server Started")
-    # app.run(host=url, port=port, threaded=True)
+    app.run(host=url, port=port, threaded=True)
 
 
 if __name__ == '__main__':
