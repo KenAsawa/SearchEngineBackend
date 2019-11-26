@@ -5,11 +5,11 @@ from flask import Blueprint, jsonify, request
 from search_engine import search
 
 server_bp = Blueprint('server_bp', __name__)
-server_ws = Blueprint('example_ws', __name__)
+server_ws = Blueprint('server_ws', __name__)
 
 
 @server_bp.route("/search", methods=["POST"])
-def start_dialog():
+def search_index():
     if request.method == "POST":
         body = request.json
         print(body)

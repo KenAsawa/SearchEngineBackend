@@ -55,13 +55,12 @@ def kill_port(port):
         data = [x for x in process.split(" ") if x != '']
         if len(data) <= 1:
             continue
-
         os.kill(int(data[1]), signal.SIGKILL)
 
 
 def run_app(url, port, start_redis):
     print("Downloading database")
-    read_from_bucket()
+    read_from_bucket(read_only=True)
     print("Database downloaded")
     if "darwin" in operating_system:
         if start_redis:
