@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 
 from flask import Blueprint, jsonify, request
 
-from search_engine import search, noise_words, index
+from search_engine import search, noise_words, index, auto_fill_find
 
 server_bp = Blueprint('server_bp', __name__)
 server_ws = Blueprint('server_ws', __name__)
@@ -60,8 +60,5 @@ def echo_example(socket):
             continue
         message = json.loads(message)
         print("Received", message)
-        # redis_set("message", message)  # Saving message to database
-        response = json.dumps(message, default=str)
-        # retrieve_message = redis_get("message")  # Getting message from database, do something with this if you want
+        response = json.dumps(auto_fill_find(message), default=str)
         socket.send(response)
-        print("Sent", message)

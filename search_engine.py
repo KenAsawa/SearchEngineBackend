@@ -15,6 +15,65 @@ url_to_title = {}
 noise_words = set(line.strip() for line in open("Noisewords.txt", "r", encoding='utf8').readlines())
 
 
+def auto_fill_find(string):
+    """
+    Finds up to 5 possible strings that start with the string given so far.
+    :param string: the query of the user so far
+    :return: a list of suggested auto-fill results
+    """
+
+    # Assume lowercase for the string
+    string = string.lower().strip()
+
+    # Base case
+    if len(string) == 0:
+        return []
+
+    # Find an index that starts with the given string
+    with database_lock.gen_rlock():
+        left, mid, right = 0, None, len(lowercase_shifts_list)
+        while left <= right:
+            mid = int((left + right) / 2)
+            # Check if match found at mid
+            if lowercase_shifts_list[mid].startswith(string):
+                break
+            # If we're too far in the list
+            elif string < lowercase_shifts_list[mid]:
+                right = mid - 1
+            # If we're not far enough in the list
+            else:
+                left = mid + 1
+        else:
+            # Only make mid None if while loop was intentionally broken
+            mid = None
+
+        # No partial match found
+        if mid is None:
+            return []
+
+        # Go backwards until the first partial match
+        while lowercase_shifts_list[mid].startswith(string):
+            mid -= 1
+
+        # Increment to first partial match
+        mid += 1
+        # Generate auto-fill results
+        auto_fill_results = []
+        for offset in range(5):  # Max of 5 results
+            current_shift = lowercase_shifts_list[mid + offset]
+            if current_shift.startswith(string):
+                # Generate only a few words out
+                num_spaces, position = 0, len(string)
+                while num_spaces < 3:
+                    if current_shift[position] == " ":
+                        num_spaces += 1
+                auto_fill_results.append(current_shift[:position])
+            else:
+                break
+
+        return auto_fill_results
+
+
 def index(url):
     global original_shifts_list
     global lowercase_shifts_list
