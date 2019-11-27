@@ -70,7 +70,6 @@ def run_app(url, port, start_redis):
         if start_redis:
             subprocess.run("brew services stop redis && brew services start redis", shell=True)
         kill_port(port)
-    print("Server Started")
     # server = pywsgi.WSGIServer((url, port), app, handler_class=WebSocketHandler)
     # server.serve_forever()
     print("Server Started")
