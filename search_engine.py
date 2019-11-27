@@ -62,12 +62,13 @@ def auto_fill_find(string):
         for offset in range(5):  # Max of 5 results
             current_shift = lowercase_shifts_list[mid + offset]
             if current_shift.startswith(string):
-                # Generate only a few words out
+                # Generate only a few words or characters out
                 num_spaces, position = 0, len(string)
-                while num_spaces < 3:
+                while num_spaces < 3 and position < len(current_shift) and position < len(string) + 20:
                     if current_shift[position] == " ":
                         num_spaces += 1
-                auto_fill_results.append(current_shift[:position])
+                    position += 1
+                auto_fill_results.append(current_shift[:position].strip())
             else:
                 break
 
