@@ -1,4 +1,3 @@
-import json
 from urllib.parse import urlparse
 
 from flask import Blueprint, jsonify, request
@@ -51,14 +50,12 @@ def search_index():
     return jsonify({"urls": [], "titles": [], "descriptions": []})
 
 
-@server_ws.route("/auto-fill")
-def auto_fill(socket):
-    # Example usage of web socket to receive and send messages
-    while not socket.closed:
-        message = socket.receive()
-        if message is None:
-            continue
-        message = json.loads(message)
-        print("Received", message)
-        response = json.dumps(auto_fill_find(message), default=str)
-        socket.send(response)
+@server_bp.route("/auto-fill", methods=["POST"])
+def auto_fill():
+    if request.method == "POST":
+        body = request.json
+        message = body['query']
+        auto_fill_choices = auto_fill_find(message)
+        return jsonify({"auto_fill": auto_fill_choices})
+
+    return jsonify({"auto_fill": []})
