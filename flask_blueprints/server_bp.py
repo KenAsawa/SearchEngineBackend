@@ -51,8 +51,8 @@ def search_index():
     return jsonify({"urls": [], "titles": [], "descriptions": []})
 
 
-@server_ws.route("/echo-example")
-def echo_example(socket):
+@server_ws.route("/auto-fill")
+def auto_fill(socket):
     # Example usage of web socket to receive and send messages
     while not socket.closed:
         message = socket.receive()
