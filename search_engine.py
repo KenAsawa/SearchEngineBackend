@@ -12,7 +12,9 @@ original_shifts_list = []
 lowercase_shifts_list = []
 shift_to_url = {}
 url_to_title = {}
-noise_words = set(line.strip() for line in open("Noisewords.txt", "r", encoding='utf8').readlines())
+noise_words = [line.strip() for line in open("Noisewords.txt", "r", encoding='utf8').readlines()]
+noise_words.sort()
+noise_words = set(noise_words)
 
 
 def auto_fill_find(string):
