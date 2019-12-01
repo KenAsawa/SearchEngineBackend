@@ -60,9 +60,9 @@ def auto_fill_find(string):
         # Increment to first partial match
         mid += 1
         # Generate auto-fill results
-        auto_fill_results = []
-        for offset in range(5):  # Max of 5 results
-            current_shift = lowercase_shifts_list[mid + offset]
+        auto_fill_results = set()
+        while len(auto_fill_results) < 5:  # Max of 5 results
+            current_shift = lowercase_shifts_list[mid]
             if current_shift.startswith(string):
                 # Generate only a few words or characters out
                 num_spaces, position = 0, len(string)
@@ -70,11 +70,12 @@ def auto_fill_find(string):
                     if current_shift[position] == " ":
                         num_spaces += 1
                     position += 1
-                auto_fill_results.append(current_shift[:position].strip())
+                auto_fill_results.add(current_shift[:position].strip())
+                mid += 1
             else:
                 break
 
-        return auto_fill_results
+        return list(auto_fill_results)
 
 
 def index(url):

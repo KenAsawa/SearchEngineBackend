@@ -27,6 +27,7 @@ def test_scraper():
 
 
 def read_from_local():
+    print("Reading from disk cache. This may take a while...")
     og_shift = read_from_json("original_shifts")
     lc_shift = read_from_json("lowercase_shifts")
     shift_url = read_from_json("shift_to_url")
@@ -38,6 +39,7 @@ def read_from_local():
 
 
 def write_to_local():
+    print("Writing to disk cache. This may take a while...")
     write_to_json("original_shifts", original_shifts_list)
     write_to_json("lowercase_shifts", lowercase_shifts_list)
     temp = {key: list(shift_to_url[key]) for key in shift_to_url}
