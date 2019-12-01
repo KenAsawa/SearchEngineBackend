@@ -92,9 +92,8 @@ def index(url):
         lsl = copy.deepcopy(lowercase_shifts_list)
         stu = copy.deepcopy(shift_to_url)
         utt = copy.deepcopy(url_to_title)
-        print('Deep copy successful')
 
-    print("Starting to scrape " + url)
+    print("Indexing " + url)
     # Get website text
     try:
         scraped_text, title = scrape_url(url)
@@ -116,12 +115,11 @@ def index(url):
     # Merge new url/title map with existing map
     utt.update(url_title_map)
 
-    print('Acquiring write lock.')
     with database_lock.gen_wlock():
-        original_shifts_list = osl
-        lowercase_shifts_list = lsl
-        shift_to_url = stu
-        url_to_title = utt
+        original_shifts_list[:] = osl
+        lowercase_shifts_list[:] = lsl
+        shift_to_url.update(stu)
+        url_to_title.update(utt)
 
     print("Index creation for " + url + " complete")
     return True

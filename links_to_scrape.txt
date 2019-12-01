@@ -7,3 +7,9 @@ https://craigslist.org
 https://walmart.com
 https://nytimes.com
 https://cnn.com
+https://en.wikipedia.org/wiki/Avengers:_Endgame
+https://www.starwars.com
+https://www.apple.com/privacy/
+https://developer.android.com
+https://www.mcdonalds.com/us/en-us.html
+https://medium.com/@johnolafenwa/introduction-to-neural-networks-ca7eab1d27d7
