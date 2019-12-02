@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 
 
 def scrape_url(url):
+    print("Starting to scrape " + url)
     html = urllib.request.urlopen(url).read()
     soup = BeautifulSoup(html, features="lxml")
 
@@ -21,7 +22,7 @@ def scrape_url(url):
     chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
     # drop blank lines
     text = ' '.join(chunk for chunk in chunks if chunk)
-
+    print("Finished scraping " + url)
     return text, title
 
 

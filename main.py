@@ -47,6 +47,7 @@ def write_to_local():
     write_to_json("url_to_title", url_to_title)
     temp = list(noise_words)
     write_to_json("noise_words", temp)
+    print("Write to disk finished")
 
 
 def write_to_json(filename, file_obj):
