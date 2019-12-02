@@ -34,13 +34,17 @@ def init_index():
             os.path.exists("noise_words.json"):
         read_from_file()
 
+    need_to_write = False
     with open("./links_to_scrape.txt") as f:
         for line in f.readlines():
             if line[0] != "#":
-                index(line.strip())
+                ret_val = index(line.strip())
+                if ret_val != 1 and ret_val is not None:
+                    need_to_write = True
 
     started = True
-    write_to_file()
+    if need_to_write:
+        write_to_file()
 
 
 def read_from_file():
