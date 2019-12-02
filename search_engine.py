@@ -1,6 +1,7 @@
 import copy
 import json
 import os
+import threading
 
 from readerwriterlock import rwlock
 
@@ -167,12 +168,14 @@ def index(url):
     except Exception as e:
         print(e)
         return None
+    print("Starting circular shift")
     # Circular shift it, get resulting associations
     shift_url_map, url_title_map = \
         circular_shift(scraped_text, url, osl, lsl, title)
     # Now need to resort the main list
     osl.sort()
     lsl.sort()
+    print("Starting merging")
     # Merge new shift/url map with existing map
     for shift in shift_url_map:
         if shift in stu:
@@ -188,12 +191,18 @@ def index(url):
         shift_to_url = stu
         url_to_title = utt
 
-    if started:
-        with database_lock.gen_rlock():
-            write_to_file()
+    threading.Thread(target=write_lock_file).start()
+    # write_lock_file()
 
     print("Index creation for " + url + " complete")
     return True
+
+
+def write_lock_file():
+    print("Writing lock started")
+    if started:
+        with database_lock.gen_rlock():
+            write_to_file()
 
 
 def binary_search(arr, word, case_sensitive=False):

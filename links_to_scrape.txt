@@ -3,13 +3,13 @@ https://ahrefs.com/blog/most-visited-websites/
 https://apple.com
 https://www.apple.com/privacy/
 https://imdb.com
-https://reddit.com
 https://tripadvisor.com
 https://craigslist.org
 https://walmart.com
 https://nytimes.com
 https://cnn.com
-https://www.starwars.com
-https://developer.android.com
-https://www.mcdonalds.com/us/en-us.html
-https://en.wikipedia.org/wiki/Avengers:_Endgame
+# https://reddit.com
+# https://www.starwars.com
+# https://developer.android.com
+# https://www.mcdonalds.com/us/en-us.html
+# https://en.wikipedia.org/wiki/Avengers:_Endgame
