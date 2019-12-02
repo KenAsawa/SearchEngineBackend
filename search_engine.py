@@ -1,4 +1,6 @@
 import copy
+import json
+import os
 
 from readerwriterlock import rwlock
 
@@ -15,6 +17,61 @@ url_to_title = {}
 noise_words = [line.strip() for line in open("Noisewords.txt", "r", encoding='utf8').readlines()]
 noise_words.sort()
 noise_words = set(noise_words)
+
+
+def init_index():
+    if os.path.exists("original_shifts.json") and \
+            os.path.exists("lowercase_shifts.json") and \
+            os.path.exists("shift_to_url.json") and \
+            os.path.exists("url_to_title.json") and \
+            os.path.exists("noise_words.json"):
+        read_from_file()
+
+    with open("./links_to_scrape.txt") as f:
+        for line in f.readlines():
+            if line[0] != "#":
+                index(line.strip())
+
+
+def read_from_file():
+    global original_shifts_list
+    global lowercase_shifts_list
+    global shift_to_url
+    global url_to_title
+    global noise_words
+
+    with database_lock.gen_wlock():
+        print("Reading from disk cache. This may take a while...")
+        original_shifts_list = read_from_json("original_shifts")
+        lowercase_shifts_list = read_from_json("lowercase_shifts")
+        shift_to_url = read_from_json("shift_to_url")
+        shift_to_url = {key: set(shift_to_url[key]) for key in shift_to_url}
+        url_to_title = read_from_json("url_to_title")
+        noise_words = read_from_json("noise_words")
+        noise_words = set(noise_words)
+        print("Loading from disk successful.")
+
+
+def read_from_json(filename):
+    with open(filename + ".json") as json_file:
+        data = json.load(json_file)
+        return data
+
+
+def write_to_file():
+    with database_lock.gen_rlock():
+        print("Writing to disk cache. This may take a while...")
+        write_to_json("original_shifts", original_shifts_list)
+        write_to_json("lowercase_shifts", lowercase_shifts_list)
+        write_to_json("shift_to_url", {key: list(shift_to_url[key]) for key in shift_to_url})
+        write_to_json("url_to_title", url_to_title)
+        write_to_json("noise_words", list(noise_words))
+        print("Write to disk finished.")
+
+
+def write_to_json(filename, file_obj):
+    with open(filename + ".json", 'w') as outfile:
+        json.dump(file_obj, outfile)
 
 
 def auto_fill_find(string):
@@ -117,10 +174,13 @@ def index(url):
     utt.update(url_title_map)
 
     with database_lock.gen_wlock():
-        original_shifts_list[:] = osl
-        lowercase_shifts_list[:] = lsl
-        shift_to_url.update(stu)
-        url_to_title.update(utt)
+        original_shifts_list = osl
+        lowercase_shifts_list = lsl
+        shift_to_url = stu
+        url_to_title = utt
+
+    with database_lock.gen_rlock():
+        write_to_file()
 
     print("Index creation for " + url + " complete")
     return True

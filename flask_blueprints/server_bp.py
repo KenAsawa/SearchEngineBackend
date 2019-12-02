@@ -2,7 +2,6 @@ from urllib.parse import urlparse
 
 from flask import Blueprint, jsonify, request
 
-from main import write_to_local
 from search_engine import search, noise_words, index, auto_fill_find
 
 server_bp = Blueprint('server_bp', __name__)
@@ -30,7 +29,6 @@ def live_index():
                     return jsonify(
                         {"status": 2, "message": "'{}' was already indexed.".format(url)})
                 else:
-                    write_to_local()
                     return jsonify({"status": 1, "message": "'{}' was successfully indexed.".format(url)})
             else:
                 return jsonify({"status": 2, "message": "Error: Malformed URL."})

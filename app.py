@@ -10,7 +10,7 @@ from flask_sockets import Sockets
 
 from flask_blueprints.server_bp import server_bp
 from flask_blueprints.server_bp import server_ws
-from main import read_from_local, test_scraper, write_to_local
+from search_engine import init_index
 
 operating_system = str(platform.system()).lower()
 
@@ -57,15 +57,7 @@ def kill_port(port):
 
 
 def run_app(url, port, start_redis):
-    if os.path.exists("original_shifts.json") and \
-            os.path.exists("lowercase_shifts.json") and \
-            os.path.exists("shift_to_url.json") and \
-            os.path.exists("url_to_title.json") and \
-            os.path.exists("noise_words.json"):
-        read_from_local()
-    else:
-        test_scraper()
-        write_to_local()
+    init_index()
     if "darwin" in operating_system:
         if start_redis:
             subprocess.run("brew services stop redis && brew services start redis", shell=True)
