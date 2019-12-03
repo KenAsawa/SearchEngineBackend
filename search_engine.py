@@ -369,12 +369,13 @@ def filter_clauses(clauses, stop_words):
     return clauses
 
 
-def search(search_query, case_sensitive, noise):
+def search(search_query, case_sensitive, noise, ordering=False):
     """
     Searches the index for results matching the search query.
     :param search_query: the string input from a user's search query
     :param case_sensitive: whether or not this query will be case sensitive
     :param noise: words that should be ignored altogether.
+    :param ordering: how results are to be returned. False if sorted on description, True if sorted on title.
     :return: a list of URLs and parallel lists of corresponding titles and descriptions
     """
 
@@ -431,26 +432,29 @@ def search(search_query, case_sensitive, noise):
                 results.append(target_list[position])
         results = set(results)
 
-        # All urls to return
-        urls = set()
+        described_urls = set()
+        url_mapping = {}
         for shift in results:
-            urls = urls.union(shift_to_url[shift])
-        urls = list(urls)
+            url_set = shift_to_url[shift]
+            for url in url_set:
+                if url not in described_urls:
+                    url_mapping[shift] = (url, url_to_title[url])
+                    described_urls.add(url)
 
-        # All titles
-        titles = [url_to_title[url] for url in urls]
-
-        # Generate descriptions
-        not_described = urls.copy()
+        if not ordering:
+            order = sorted(url_mapping.keys())
+        else:
+            order = sorted(url_mapping.keys(), key=lambda s: url_mapping[s][1].lower())
+        urls = []
         descriptions = []
-        for shift in results:
-            for url in shift_to_url[shift]:
-                if url in not_described:
-                    if len(shift) < 170:
-                        descriptions.append(shift)
-                    else:
-                        descriptions.append(shift[:170] + '...')
-                    not_described.remove(url)
+        titles = []
+        for shift in order:
+            urls.append(url_mapping[shift][0])
+            if len(shift) < 170:
+                descriptions.append(shift)
+            else:
+                descriptions.append(shift[:170] + '...')
+            titles.append(url_mapping[shift][1])
 
         # Return
         return urls, titles, descriptions

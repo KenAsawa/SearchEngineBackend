@@ -44,7 +44,8 @@ def search_index():
         case = body['case_sensitive'] if 'case_sensitive' in body else False
         noise = body['noise_words'] if 'noise_words' in body else []
         noise = [word['word'] for word in noise]
-        urls, titles, descriptions = search(query, case, noise)
+        ordering = body['ordering'] if 'ordering' in body else False
+        urls, titles, descriptions = search(query, case, noise, ordering)
         return jsonify({"urls": urls, "titles": titles, "descriptions": descriptions})
 
     return jsonify({"urls": [], "titles": [], "descriptions": []})
