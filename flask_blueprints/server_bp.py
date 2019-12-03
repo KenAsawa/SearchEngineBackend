@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 from flask import Blueprint, jsonify, request
 
 from search_engine import search, noise_words, index, auto_fill_find
+import math
 
 server_bp = Blueprint('server_bp', __name__)
 server_ws = Blueprint('server_ws', __name__)
@@ -45,15 +46,12 @@ def search_index():
         noise = body['noise_words'] if 'noise_words' in body else []
         noise = [word['word'] for word in noise]
         ordering = body['ordering'] if 'ordering' in body else False
-        results_per_page = body['results_per_page']
+        results_per_page = body['results_per_page'] if 'results_per_page' in body else 1
         urls, titles, descriptions = search(query, case, noise, ordering)
         if results_per_page == 1:
             num_of_pages = len(urls)
         else:
-            num_of_pages = int(int(len(urls)) / int(results_per_page + 1)) + 1
-        print("Len urls", len(urls))
-        print("Results Per Page", results_per_page)
-        print("Num pages", num_of_pages)
+            num_of_pages = math.ceil(len(urls) / results_per_page)
         return jsonify({"urls": urls, "titles": titles, "descriptions": descriptions, "num_of_pages": num_of_pages})
 
     return jsonify({"urls": [], "titles": [], "descriptions": [], "num_of_pages": 0})
