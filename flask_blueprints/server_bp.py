@@ -45,10 +45,18 @@ def search_index():
         noise = body['noise_words'] if 'noise_words' in body else []
         noise = [word['word'] for word in noise]
         ordering = body['ordering'] if 'ordering' in body else False
+        results_per_page = body['results_per_page']
         urls, titles, descriptions = search(query, case, noise, ordering)
-        return jsonify({"urls": urls, "titles": titles, "descriptions": descriptions})
+        if results_per_page == 1:
+            num_of_pages = len(urls)
+        else:
+            num_of_pages = int(int(len(urls)) / int(results_per_page + 1)) + 1
+        print("Len urls", len(urls))
+        print("Results Per Page", results_per_page)
+        print("Num pages", num_of_pages)
+        return jsonify({"urls": urls, "titles": titles, "descriptions": descriptions, "num_of_pages": num_of_pages})
 
-    return jsonify({"urls": [], "titles": [], "descriptions": []})
+    return jsonify({"urls": [], "titles": [], "descriptions": [], "num_of_pages": 0})
 
 
 @server_bp.route("/auto-fill", methods=["POST"])
